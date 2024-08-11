@@ -17,7 +17,11 @@ package org.tron.tronj.client;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.tron.tronj.abi.FunctionEncoder;
+import org.tron.tronj.abi.TypeReference;
+import org.tron.tronj.abi.datatypes.Address;
+import org.tron.tronj.abi.datatypes.Bool;
 import org.tron.tronj.abi.datatypes.Function;
+import org.tron.tronj.abi.datatypes.generated.Uint256;
 import org.tron.tronj.api.GrpcAPI.BytesMessage;
 
 import org.tron.tronj.api.WalletGrpc;
@@ -71,9 +75,8 @@ import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.security.Key;
-import java.security.SignatureException;
 import java.util.*;
 
 import org.tron.tronj.crypto.tuweniTypes.Bytes32;
@@ -113,6 +116,20 @@ public class TronClient {
     public void close() {
         channel.shutdown();
         channelSolidity.shutdown();
+    }
+
+    public SECP256K1.KeyPair getKeyPair() {
+        return keyPair;
+    }
+
+    public String getAddress() {
+        Keccak.Digest256 digest = new Keccak.Digest256();
+        digest.update(keyPair.getPublicKey().getEncoded(), 0, 64);
+        byte[] raw = digest.digest();
+        byte[] rawAddr = new byte[21];
+        rawAddr[0] = 0x41;
+        System.arraycopy(raw, 12, rawAddr, 1, 20);
+        return Base58Check.bytesToBase58(rawAddr);
     }
 
     /*public TronClient(Channel channel, String hexPrivateKey) {
@@ -332,6 +349,39 @@ public class TronClient {
                 .build();
 
         TransactionExtention txnExt = blockingStub.transferAsset2(req);
+
+        if(SUCCESS != txnExt.getResult().getCode()){
+            throw new IllegalException(txnExt.getResult().getMessage().toStringUtf8());
+        }
+
+        return txnExt;
+    }
+
+    /**
+     * Transfers TRC20 Token
+     * @param fromAddress owner address
+     * @param contractAddress contract address
+     * @param toAddress receive balance
+     * @param amount transfer amount
+     * @return TransactionExtention
+     * @throws IllegalException if fail to transfer trc20
+     */
+    public TransactionExtention transferTrc20(String fromAddress, String contractAddress, String toAddress, long amount) throws IllegalException {
+        Function trc20Transfer = new Function("transfer",
+            Arrays.asList(new Address(toAddress),
+                    new Uint256(BigInteger.valueOf(amount).multiply(BigInteger.valueOf(10).pow(18)))),
+            Arrays.asList(new TypeReference<Bool>() {}));
+
+        String encodedHex = FunctionEncoder.encode(trc20Transfer);
+
+        TriggerSmartContract trigger =
+            TriggerSmartContract.newBuilder()
+                .setOwnerAddress(parseAddress(fromAddress))
+                .setContractAddress(parseAddress(contractAddress))
+                .setData(parseHex(encodedHex))
+                .build();
+
+        TransactionExtention txnExt = blockingStub.triggerContract(trigger);
 
         if(SUCCESS != txnExt.getResult().getCode()){
             throw new IllegalException(txnExt.getResult().getMessage().toStringUtf8());
