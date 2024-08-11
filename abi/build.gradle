@@ -14,7 +14,7 @@ publishing {
         MyPublication(MavenPublication) {
             from components.java
             groupId 'org.tron.tronj'
-            artifactId 'utils'
+            artifactId 'abi'
             version '0.1.3'
         }
     }

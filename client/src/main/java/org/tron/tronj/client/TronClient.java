@@ -17,6 +17,7 @@ package org.tron.tronj.client;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.tron.tronj.abi.FunctionEncoder;
+import org.tron.tronj.abi.FunctionReturnDecoder;
 import org.tron.tronj.abi.TypeReference;
 import org.tron.tronj.abi.datatypes.Address;
 import org.tron.tronj.abi.datatypes.Bool;
@@ -95,6 +96,7 @@ import org.tron.tronj.proto.Response.ProposalList;
 import org.tron.tronj.proto.Response.ExchangeList;
 import org.tron.tronj.proto.Response.TransactionSignWeight;
 import org.tron.tronj.proto.Response.TransactionApprovedList;
+import org.tron.tronj.utils.Numeric;
 
 import static org.tron.tronj.proto.Response.TransactionReturn.response_code.SUCCESS;
 
@@ -388,6 +390,31 @@ public class TronClient {
         }
 
         return txnExt;
+    }
+
+    /**
+     * Retrieves TRC20 balance
+     * @param accountAddress owner address
+     * @param contractAddress contract address
+     */
+    public BigInteger getBalanceTrc20(String accountAddress, String contractAddress) {
+        Function balanceOf = new Function("balanceOf",
+            Arrays.asList(new Address(accountAddress)),
+                Arrays.asList(new TypeReference<Uint256>() {}));
+
+        String encodedHex = FunctionEncoder.encode(balanceOf);
+
+        TriggerSmartContract trigger =
+            TriggerSmartContract.newBuilder()
+                .setOwnerAddress(parseAddress(accountAddress))
+                .setContractAddress(parseAddress(contractAddress))
+                .setData(parseHex(encodedHex))
+                .build();
+
+        TransactionExtention txnExt = blockingStub.triggerConstantContract(trigger);
+        //Convert constant result to human readable text
+        String result = Numeric.toHexString(txnExt.getConstantResult(0).toByteArray());
+        return (BigInteger) FunctionReturnDecoder.decode(result, balanceOf.getOutputParameters()).get(0).getValue();
     }
 
     /**
