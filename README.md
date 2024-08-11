@@ -25,13 +25,13 @@ Then add required packages as dependencies.
 ```groovy
 dependencies {
     // protobuf & grpc
-    implementation 'com.google.protobuf:protobuf-java:3.11.0'
+    implementation 'com.google.protobuf:protobuf-java:4.27.3'
 
-    implementation 'org.tron.tronj:abi:0.1.2'
-    implementation 'org.tron.tronj:client:0.1.2'
-    implementation 'org.tron.tronj:utils:0.1.2'
+    implementation 'org.tron.tronj:abi:0.1.3'
+    implementation 'org.tron.tronj:client:0.1.3'
+    implementation 'org.tron.tronj:utils:0.1.3'
 
-    implementation 'com.google.guava:guava:28.0-jre'
+    implementation 'com.google.guava:guava:33.2.1-jre'
 }
 ```
 
@@ -41,19 +41,19 @@ dependencies {
 <dependency>
   <groupId>org.tron.tronj</groupId>
   <artifactId>abi</artifactId>
-  <version>0.1.2</version>
+  <version>0.1.3</version>
   <type>pom</type>
 </dependency>
 <dependency>
   <groupId>org.tron.tronj</groupId>
   <artifactId>utils</artifactId>
-  <version>0.1.2</version>
+  <version>0.1.3</version>
   <type>pom</type>
 </dependency>
 <dependency>
   <groupId>org.tron.tronj</groupId>
   <artifactId>client</artifactId>
-  <version>0.1.2</version>
+  <version>0.1.3</version>
   <type>pom</type>
 </dependency>
 ```

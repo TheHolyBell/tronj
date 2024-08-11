@@ -145,7 +145,7 @@ public class TronClient {
      * @return a TronClient object
      */
     public static TronClient ofNile(String hexPrivateKey) {
-        return new TronClient("47.252.19.181:50051", "47.252.19.181:50061", hexPrivateKey);
+        return new TronClient("grpc.nile.trongrid.io:50051", "grpc.nile.trongrid.io:50061", hexPrivateKey);
     }
 
     /**
